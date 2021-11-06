@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken');
-const JSONConfig = require('../configs');
 const {getOneByKey} = require("../repositories/accounts.repository");
+const {secretKey} = require("../configs");
 
 function Authentication(req, res, next) {
     const regexAuthPathname = /^\/auth\/*/;
     if (req.url === "/auth" || regexAuthPathname.test(req.url)) {
-        if (req.cookies && req.cookies.Token) {
-            jwt.verify(req.cookies.Token, JSONConfig().secretKey, async (err, decode) => {
+        if (req.headers && req.headers.accesstoken) {
+            jwt.verify(req.headers.accesstoken, secretKey, async (err, decode) => {
                 if (err) {
                     return res.status(401).json({
                         status: false,

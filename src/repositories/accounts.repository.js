@@ -25,5 +25,11 @@ module.exports = {
             ],
         });
         return accountFinded;
+    },
+    getOneAllIncludeByKey: async (key) => {
+        let accountFinded = await accounts.findOne({
+            ...key
+        });
+        return accountFinded;
     }
 }

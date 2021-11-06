@@ -1,11 +1,11 @@
 const jwt = require("jsonwebtoken");
-const JSONConfig = require("../configs");
 const {getOneByKey} = require("../repositories/accounts.repository")
+const {secretKey} = require("../configs");
 
 function Authorization(req, res, next, role = []) {
     if (role.length <= 0) return next();
-    if (!req.cookies || !req.cookies.Token) return next();
-    jwt.verify(req.cookies.Token, JSONConfig().secretKey, async (err, decode) => {
+    if (!req.headers || !req.headers.accesstoken) return next();
+    jwt.verify(req.headers.accesstoken, secretKey, async (err, decode) => {
         if (err) return next();
         let account = JSON.parse(JSON.stringify(await getOneByKey({
             id: decode.accountId

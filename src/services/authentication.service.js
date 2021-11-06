@@ -1,9 +1,9 @@
-const JSONConfig = require("../configs");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const accountService = require("../repositories/accounts.repository");
 const refreshTokenService = require("../repositories/refreshtokens.repository");
 const {checkAccount, checkPassword} = require("../utils");
+const {secretKey, secretRefreshKey} = require("../configs");
 
 module.exports = {
     login: async (req, res) => {
@@ -31,17 +31,16 @@ module.exports = {
                 field: "password",
                 msg: "Mật khẩu không chính xác!"
             });
-            let token = jwt.sign({accountId: accountLogin.dataValues.id || 0}, JSONConfig().secretKey, {
-                expiresIn: "2m"
+            let token = jwt.sign({accountId: accountLogin.dataValues.id || 0}, secretKey, {
+                expiresIn: "30m"
             });
-            let refreshToken = jwt.sign({accountId: accountLogin.dataValues.id || 0}, JSONConfig().secretRefreshKey, {
+            let refreshToken = jwt.sign({accountId: accountLogin.dataValues.id || 0}, secretRefreshKey, {
                 expiresIn: "30d"
             });
             await refreshTokenService.create({
                 token: refreshToken,
                 accountId: accountLogin.dataValues.id
             })
-            res.cookie("Token", token, JSONConfig().cookie_options);
             return res.status(200).json({
                 status: true,
                 msg: "Đăng nhập thành công",
@@ -93,12 +92,11 @@ module.exports = {
     },
     logout: async (req, res) => {
         try {
-            if (req.cookies && req.cookies.Token) {
-                let decode = jwt.decode(req.cookies.Token);
+            if (req.headers && req.headers.accesstoken) {
+                let decode = jwt.decode(req.headers.accesstoken);
                 await refreshTokenService.delete({
                     accountId: decode.accountId
                 });
-                res.clearCookie("Token");
                 return res.status(200).json({
                     status: true,
                     msg: "Đăng xuất thành công!",
@@ -119,7 +117,7 @@ module.exports = {
         try {
             let token = (req.body && req.body.token) || null;
             if (!token || typeof token !== "string") return res.status(400).json({status: false});
-            jwt.verify(token, JSONConfig().secretRefreshKey, async (err, decode) => {
+            jwt.verify(token, secretRefreshKey, async (err, decode) => {
                 if (err) {
                     await refreshTokenService.delete({
                         token: token
@@ -131,10 +129,9 @@ module.exports = {
                     token: token
                 });
                 if (!tokenGetFromDB) return res.status(400).json({status: false, msg: "Token không hợp lệ!"});
-                let newToken = await jwt.sign({accountId: decode.accountId || 0}, JSONConfig().secretKey, {
-                    expiresIn: "2m"
+                let newToken = await jwt.sign({accountId: decode.accountId || 0}, secretKey, {
+                    expiresIn: "30m"
                 });
-                res.cookie("Token", newToken, JSONConfig().cookie_options);
                 return res.status(200).json({
                     status: true,
                     msg: "Cập nhật token thành công",

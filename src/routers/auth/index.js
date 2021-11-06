@@ -1,5 +1,8 @@
+const Authorization = require("../../middlewares/authorization");
 const express = require('express');
 const router = express.Router();
-const Authorization = require("../../middlewares/authorization");
+const account = require("./account");
+
+router.use('/account', account);
 
 module.exports = router;
