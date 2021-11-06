@@ -31,5 +31,11 @@ module.exports = {
             ...key
         });
         return accountFinded;
+    },
+    getAllWithIncludeByKey: async (key) => {
+        let accountFinded = await accounts.findAndCountAll({
+            ...key
+        });
+        return accountFinded;
     }
 }

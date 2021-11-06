@@ -6,13 +6,9 @@ const getOneById = (req, res) => {
     return accountService.getOneById(req, res);
 }
 const getAllByKey = (req, res) => {
-
-}
-const create = (req, res) => {
-
+    return accountService.getAllByKey(req, res);
 }
 const update = (req, res) => {
-
 }
 const destroy = (req, res) => {
 
