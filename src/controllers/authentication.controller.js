@@ -12,5 +12,8 @@ const Logout = (req, res) => {
 const RefreshToken = (req, res) => {
     return authentication.RefreshToken(req, res);
 }
+const getAccountById = (req, res) => {
+    return authentication.getAccountById(req, res);
+}
 
-module.exports = {Login, Signup, Logout, RefreshToken};
+module.exports = {Login, Signup, Logout, RefreshToken, getAccountById};

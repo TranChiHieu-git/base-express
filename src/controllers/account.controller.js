@@ -14,4 +14,4 @@ const destroy = (req, res) => {
 
 }
 
-module.exports = {getOneByKey, getAllByKey, getOneById, create, update, destroy}
+module.exports = {getOneByKey, getAllByKey, getOneById, update, destroy}

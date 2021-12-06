@@ -32,10 +32,10 @@ module.exports = {
                 msg: "Mật khẩu không chính xác!"
             });
             let token = jwt.sign({accountId: accountLogin.dataValues.id || 0}, secretKey, {
-                expiresIn: "30m"
+                expiresIn: "1m"
             });
             let refreshToken = jwt.sign({accountId: accountLogin.dataValues.id || 0}, secretRefreshKey, {
-                expiresIn: "30d"
+                expiresIn: "4m"
             });
             await refreshTokenService.create({
                 token: refreshToken,
@@ -76,7 +76,7 @@ module.exports = {
             });
             req.body.password = await bcrypt.hash(req.body.password, 12);
             let result = await accountService.create({...req.body});
-            if (!result) return res.status(400).json({status: false, msg: "Tạo tài khoản thất bại!"});
+            if (!result) return res.status(200).json({status: false, msg: "Tạo tài khoản thất bại!"});
             return res.status(200).json({
                 status: true,
                 msg: "Tạo tài khoản thành công!",
@@ -122,15 +122,15 @@ module.exports = {
                     await refreshTokenService.delete({
                         token: token
                     });
-                    return res.status(400).json({status: false, msg: "Token không hợp lệ!"});
+                    return res.status(401).json({status: false, msg: "Token không hợp lệ!"});
                 }
                 let tokenGetFromDB = await refreshTokenService.getOneByKey({
                     accountId: decode.accountId,
                     token: token
                 });
-                if (!tokenGetFromDB) return res.status(400).json({status: false, msg: "Token không hợp lệ!"});
+                if (!tokenGetFromDB) return res.status(200).json({status: false, msg: "Token không hợp lệ!"});
                 let newToken = await jwt.sign({accountId: decode.accountId || 0}, secretKey, {
-                    expiresIn: "30m"
+                    expiresIn: "1m"
                 });
                 return res.status(200).json({
                     status: true,
@@ -142,6 +142,35 @@ module.exports = {
         } catch (err) {
             console.log(err);
             return res.status(400).json({status: false, msg: "Cập nhật token thất bại!"});
+        }
+    },
+    getAccountById: async (req, res) => {
+        try {
+            let token = (req.headers && req.headers.accesstoken) || null;
+            if (!token || typeof token !== "string") return res.status(400).json({status: false});
+            jwt.verify(token, secretKey, async (err, decode) => {
+                if (err) {
+                    return res.status(401).json({status: false, msg: "Token không hợp lệ!"});
+                }
+                let account = await accountService.getOneByKey({
+                    id: decode.accountId,
+                });
+                if (!account?.dataValues) return res.status(200).json({
+                    status: false,
+                    msg: "Không tìm thấy tài khoản!"
+                });
+                return res.status(200).json({
+                    status: true,
+                    msg: "Lấy thông tin thành công",
+                    result: {
+                        ...account?.dataValues,
+                        password: "Không công khai!"
+                    },
+                });
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(400).json({status: false, msg: "Lấy thông tin thất bại!"});
         }
     }
 }
